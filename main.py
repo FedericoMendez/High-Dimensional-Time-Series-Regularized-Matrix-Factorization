@@ -28,11 +28,8 @@ class TRMF_AR:
         return sum + eps_t
 
     # Regularization functions
-    def Rf(self, F):
-        return np.linalg.norm(F)**2
-    
-    def Rw(self):
-        return np.linalg.norm(self.W)**2
+    def Reg(self, M):
+        return np.linalg.norm(M)**2
 
     def T_M(self):
         # X has shape (k, T) so we do the norm on the columns
@@ -40,11 +37,11 @@ class TRMF_AR:
         return first_term + (self.eta/2)*np.linalg.norm(self.X, axis=1)**2
 
     def optimization_function(self):
-        return np.linalg.norm(self.Y-self.F@self.X)**2 + self.lambda_x * self.Rx(self.X) + self.lambda_f * self.Rf(self.F) + self.lambda_W * self.R_W(self.W)
+        return np.linalg.norm(self.Y-self.F@self.X)**2 + self.lambda_x * self.Rx(self.X) + self.lambda_f * self.Reg(self.F) + self.lambda_W * self.Reg(self.W)
 
     # Alternative update functions
     def F_step_func(self, F):    
-        return np.linalg.norm(self.Y-F@self.X)**2 + self.lambda_f * self.Rf(F)
+        return np.linalg.norm(self.Y-F@self.X)**2 + self.lambda_f * self.reg(F)
 
     def coordinate_descent(self, F, max_steps = 200, eps=1e-4, grad_step=1e-5):
         k=0
