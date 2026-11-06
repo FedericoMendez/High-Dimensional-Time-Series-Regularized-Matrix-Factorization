@@ -46,27 +46,24 @@ class TRMF_AR:
     def F_step_func(self, F):    
         return np.linalg.norm(self.Y-F@self.X)**2 + self.lambda_f * self.Rf(F)
 
-    def coordinate_descent(self, F, CD_params, max_steps = 200, eps=1e-4, grad_step=1e-5):
+    def coordinate_descent(self, F, max_steps = 200, eps=1e-4, grad_step=1e-5):
         k=0
         curr_F = np.array(F)
-        while k<max_steps:
-            old_F = np.copy(curr_F)
-            for i in range(len(curr_F)):
-                F0 = curr_F[i]
+        denom = np.sum(self.X**2, axis=1)+self.lambda_f
 
-                # Calculating the gradient w.r.t F_i
-                curr_F[i]=F0+grad_step
-                fplus= self.F_step_func(curr_F)
-                curr_F[i]=F0-grad_step
-                fminus= self.F_step_func(curr_F)
-                grad_i = (fplus-fminus)/(2*grad_step)
-                
-                # Updating
-                curr_F[i] = F0 - CD_params[i]*grad_i
+        for k in range(max_steps):
+            old_F = np.copy(curr_F)
+            for i in range(curr_F.shape[0]):
+                # Calculating the gradient w.r.t F_i, we can find its formula.
+                # The proof of this final formula is in proofs.md
+                for j in range(curr_F.shape[1]):
+                    fx_without_j = np.dot(curr_F[i], self.X)-curr_F[i,j]*self.X[j,:]
+                    R_ij = self.Y[i,:]-fx_without_j
+                    curr_F[i,j]=np.dot(R_ij, self.X[j,:])/denom[j]
+
             # Convergence conditions
             if np.linalg.norm(curr_F-old_F)<= eps:
                 break
-            k+=1
         return curr_F
     
     def X_step_func(self, X):
