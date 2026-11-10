@@ -8,7 +8,7 @@ class TRMF_AR:
         # Parameters
         self.n, self.T = Y.shape[0], Y.shape[1]
         self.k = latent_dim
-        self.L_set = lag_set; self.L = max(self.L_set)
+        self.L_set = lag_set; self.L = max(self.L_set); self.m = self.L+1
         self.sigma_noise = sigma
         self.lambda_x, self.lambda_f, self.lambda_W = lambda_x, lambda_f, lambda_W
         self.eta = eta
@@ -43,6 +43,20 @@ class TRMF_AR:
     def F_step_func(self, F):    
         return np.linalg.norm(self.Y-F@self.X)**2 + self.lambda_f * self.reg(F)
 
+    def W_step_func(self, W):
+        new_W = np.zeros_like(W)
+        for r in range(W.shape[0]):
+            x = self.X[r]
+            X_tilde = np.array([[x[self.m+i-1-j] for j in range(self.L)]for i in range(self.T-self.m+1)])
+            
+            # Solving Ridge Regression with Cholesky decomposition
+            A = X_tilde.T@X_tilde + (self.lambda_W/self.lambda_X)*np.eye(self.L)
+            L = np.linalg.cholesky(A)
+            z= np.linalg.solve(L, X_tilde.T @ x)
+            new_W[r]= np.linalg.solve(L.T, z)
+
+        return new_W
+
     def coordinate_descent(self, F, max_steps = 200, eps=1e-4, grad_step=1e-5):
         k=0
         curr_F = np.array(F)
@@ -58,7 +72,7 @@ class TRMF_AR:
                     R_ij = self.Y[i,:]-fx_without_j
                     curr_F[i,j]=np.dot(R_ij, self.X[j,:])/denom[j]
 
-            # Convergence conditions
+            # Convergence conditions    
             if np.linalg.norm(curr_F-old_F)<= eps:
                 break
         return curr_F
@@ -73,6 +87,7 @@ class TRMF_AR:
         # Update F - Alternative Least Square / Coordinate descent
         self.F = self.coordinate_descent(self.F)
         # Update X - GRALS based on theorem 1
-
+        
         # Update W - Cholesky Factorization
+        self.W = self.W_step_func(self.W)
         return
