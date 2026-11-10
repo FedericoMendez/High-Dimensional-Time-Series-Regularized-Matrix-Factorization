@@ -19,9 +19,9 @@ The function to minimize is : $$\begin{align*}f(\bar w)&=\sum_{t=m}^T\left(x_t-\
 
 Let $\tilde X = \begin{bmatrix}x_m & ... & x_{m-L}\\ \vdots & ... & \vdots \\ x_T & ... & x_{T-L}\end{bmatrix}$, we have : $\tilde X \bar w = \left(\sum_{l=1}^L w_l x_{t-l}\right)_{m\leq t\leq T}$
 
-So, the function becomes : $$f(\bar w)=||\bar x - \tilde X\bar w||_2^2+\frac{\lambda_W}{\lambda_X}||\bar w||^2$$
+So, the function becomes, with $\bar x_{[m:T]}=(x_t)_{m\leq t \leq T}$ : $$f(\bar w)=||\bar x_{[m:T]} - \tilde X\bar w||_2^2+\frac{\lambda_W}{\lambda_X}||\bar w||^2$$
 Which is a Ridge Regression on $\bar w$ with $\lambda = \frac{\lambda_W}{\lambda_X}$.
 
-$\nabla f(\bar w)=0 \Rightarrow \bar w = (\lambda I + \tilde X^\top \tilde X)^{-1}\tilde X^\top \bar x$
+$\nabla f(\bar w)=0 \Rightarrow \bar w = (\lambda I + \tilde X^\top \tilde X)^{-1}\tilde X^\top \bar x_{[m:T]}$
 
 We will use Cholesky decomposition to solve the Ridge regression efficiently.
