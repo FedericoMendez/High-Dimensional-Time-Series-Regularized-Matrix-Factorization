@@ -47,12 +47,13 @@ class TRMF_AR:
         new_W = np.zeros_like(W)
         for r in range(W.shape[0]):
             x = self.X[r]
+            x_target = x[self.m:]
             X_tilde = np.array([[x[self.m+i-1-j] for j in range(self.L)]for i in range(self.T-self.m+1)])
             
             # Solving Ridge Regression with Cholesky decomposition
             A = X_tilde.T@X_tilde + (self.lambda_W/self.lambda_X)*np.eye(self.L)
             L = np.linalg.cholesky(A)
-            z= np.linalg.solve(L, X_tilde.T @ x)
+            z= np.linalg.solve(L, X_tilde.T @ x_target)
             new_W[r]= np.linalg.solve(L.T, z)
 
         return new_W
